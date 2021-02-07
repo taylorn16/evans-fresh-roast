@@ -1,5 +1,5 @@
-﻿using System;
-using Domain.Base;
+﻿using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
@@ -22,20 +22,11 @@ namespace Domain
 
         public void MarkAsPaid(PaymentMethod method)
         {
-            if (!IsPaid)
-            {
-                if (method == PaymentMethod.NotSet)
-                {
-                    throw new ApplicationException("You must supply a payment method.");
-                }
+            if (IsPaid) throw new InvoiceAlreadyPaidException();
+            if (method == PaymentMethod.NotSet) throw new PaymentMethodNotSpecifiedException();
 
-                IsPaid = true;
-                PaymentMethod = method;
-            }
-            else
-            {
-                throw new ApplicationException("This invoice was already marked as paid.");
-            }
+            IsPaid = true;
+            PaymentMethod = method;
         }
     }
 }

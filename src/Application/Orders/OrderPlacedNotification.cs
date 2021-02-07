@@ -67,7 +67,7 @@ namespace Application.Orders
                                       "If this is not correct, please reply CANCEL to cancel your order. " +
                                       "If this is correct, please reply CONFIRM to confirm your order.");
 
-            return SmsMessage.From(messageBuilder.ToString());
+            return SmsMessage.Create(messageBuilder.ToString());
         }
     }
 }

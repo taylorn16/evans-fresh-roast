@@ -1,4 +1,6 @@
 ﻿using Dawn;
+using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
@@ -6,7 +8,9 @@ namespace Domain
     {
         private readonly NonEmptyString _description;
 
-        public static Description From(string desc) => new(desc);
+        public static Description Create(string desc) => ValueObject.SafeCreate(
+            () => new Description(desc),
+            ex => new InvalidDescriptionException(desc, ex));
 
         private Description(string description)
         {

@@ -1,4 +1,6 @@
 ﻿using Dawn;
+using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
@@ -6,7 +8,9 @@ namespace Domain
     {
         private readonly NonEmptyString _name;
 
-        public static Name<T> From(string name) => new(name);
+        public static Name<T> Create(string name) => ValueObject.SafeCreate(
+            () => new Name<T>(name),
+            ex => new InvalidNameException(name, ex));
 
         private Name(string name)
         {

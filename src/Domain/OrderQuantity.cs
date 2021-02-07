@@ -1,4 +1,6 @@
 ﻿using Dawn;
+using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
@@ -6,7 +8,9 @@ namespace Domain
     {
         private readonly int _qty;
 
-        public static OrderQuantity From(int qty) => new(qty);
+        public static OrderQuantity Create(int qty) => ValueObject.SafeCreate(
+            () => new OrderQuantity(qty),
+            ex => new InvalidOrderQuantityException(qty, ex));
 
         private OrderQuantity(int qty)
         {

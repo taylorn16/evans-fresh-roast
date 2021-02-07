@@ -19,7 +19,7 @@ namespace Application.Sms
 
     internal sealed class SmsParser : ISmsParser
     {
-        private static readonly Regex OrderLinePattern = new(@"^qty(\d{1,2})([A-Z]{1})$", RegexOptions.IgnoreCase);
+        private static readonly Regex OrderLinePattern = new(@"^qty\s*(\d{1,2})\s*([A-Z]{1})$", RegexOptions.IgnoreCase);
 
         public IRequest Parse(UsPhoneNumber phoneNumber, SmsMessage message)
         {
@@ -27,9 +27,9 @@ namespace Application.Sms
             {
                 "yes" => new ConfirmContactCommand { PhoneNumber = phoneNumber },
                 "no" => new NoopCommand(),
-                "stop" => new NoopCommand(), // TODO: unsubscribe command
+                "stop" => new UnsubscribeContactCommand { PhoneNumber = phoneNumber },
                 "confirm" => new ConfirmOrderCommand { PhoneNumber = phoneNumber },
-                "cancel" => new NoopCommand(), // TODO: cancel order command
+                "cancel" => new CancelOrderCommand { PhoneNumber = phoneNumber },
                 _ => ParseOrderMessage(phoneNumber, message),
             };
 
@@ -44,7 +44,11 @@ namespace Application.Sms
                         PhoneNumber = phoneNumber,
                         OrderDetails = orderLines
                     },
-                    _ => new NoopCommand());
+                    errs => new SendOrderParsingErrorSmsCommand
+                    {
+                        PhoneNumber = phoneNumber,
+                        Message = SmsMessage.Create(errs),
+                    });
 
         private static IEnumerable<string> GetTrimmedLines(string message) =>
             Regex.Split(message, @"\r\n|\r|\n")
@@ -65,9 +69,9 @@ namespace Application.Sms
                 .Select(eith => eith.LeftToArray()[0])
                 .Select(err => err switch
                 {
-                    CouldNotParse e => $"We couldn't understand this line: '{e.Line}'.",
+                    CouldNotParse e => $"We couldn't figure out this part: '{e.Line}'.",
                     DuplicateLabel e => $"Multiple lines contained the label '{e.Label}'.",
-                    QuantityTooGreat e => $"You can't order more than 15 bags of any coffee. Looks like you tried to order {e.Quantity}.'"
+                    QuantityTooGreat e => $"You can't order more than 15 bags of any coffee. Looks like you tried to order {e.Quantity} bags of {e.Label}."
                 })
                 .ToArray();
 
@@ -84,17 +88,15 @@ namespace Application.Sms
 
             var groups = matches.First().Groups;
             var qtyInt = int.Parse(groups[1].Value);
+            var label = OrderReferenceLabel.Create(groups[2].Value.ToUpperInvariant());
 
             try
             {
-                var qty = OrderQuantity.From(qtyInt);
-                var label = OrderReferenceLabel.From(groups[2].Value.ToUpperInvariant());
-
-                return new KeyValuePair<OrderReferenceLabel, OrderQuantity>(label, qty);
+                return new KeyValuePair<OrderReferenceLabel, OrderQuantity>(label, OrderQuantity.Create(qtyInt));
             }
             catch (ArgumentOutOfRangeException)
             {
-                return new QuantityTooGreat(qtyInt);
+                return new QuantityTooGreat(qtyInt, label);
             }
         }
 
@@ -118,8 +120,13 @@ namespace Application.Sms
         private sealed class QuantityTooGreat : LineParseFailure
         {
             public int Quantity { get; }
+            public OrderReferenceLabel Label { get;  }
 
-            public QuantityTooGreat(int quantity) => Quantity = quantity;
+            public QuantityTooGreat(int quantity, OrderReferenceLabel label)
+            {
+                Quantity = quantity;
+                Label = label;
+            }
         }
     }
 }

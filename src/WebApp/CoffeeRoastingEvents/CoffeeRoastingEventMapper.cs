@@ -14,7 +14,7 @@ namespace WebApp.CoffeeRoastingEvents
         public Dto.CoffeeRoastingEvent Map(CoffeeRoastingEvent @event) => new()
         {
             Id = @event.Id,
-            Date = @event.Date,
+            Date = @event.RoastDate,
             Name = @event.Name,
             IsActive = @event.IsActive,
             ContactIds = @event.NotifiedContacts.Select(id => (Guid) id).ToArray(),

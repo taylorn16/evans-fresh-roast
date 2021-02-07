@@ -1,12 +1,12 @@
-﻿using System;
-using Domain.Base;
+﻿using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
     public sealed class Contact : Entity<Contact>
     {
-        public Name<Contact> Name { get; private set; }
-        public UsPhoneNumber PhoneNumber { get; private set; }
+        public Name<Contact> Name { get; set; }
+        public UsPhoneNumber PhoneNumber { get; set; }
         public bool IsActive { get; private set; }
         public bool IsConfirmed { get; private set; }
 
@@ -25,48 +25,23 @@ namespace Domain
 
         public void Confirm()
         {
-            if (!IsConfirmed)
-            {
-                IsConfirmed = true;
-            }
-            else
-            {
-                throw new ApplicationException("You are already confirmed.");
-            }
+            if (IsConfirmed) throw new ContactAlreadyConfirmedException();
+
+            IsConfirmed = true;
         }
 
         public void Deactivate()
         {
-            if (IsActive)
-            {
-                IsActive = false;
-            }
-            else
-            {
-                throw new ApplicationException("You are already opted out.");
-            }
+            if (!IsActive) throw new ContactAlreadyDeactivatedException();
+
+            IsActive = false;
         }
 
         public void Activate()
         {
-            if (!IsActive)
-            {
-                IsActive = true;
-            }
-            else
-            {
-                throw new ApplicationException("You are already opted in.");
-            }
-        }
+            if (IsActive) throw new ContactAlreadyActivatedException();
 
-        public void UpdateName(string name)
-        {
-            Name = Name<Contact>.From(name);
-        }
-
-        public void UpdateNumber(string phoneNumber)
-        {
-            PhoneNumber = UsPhoneNumber.From(phoneNumber);
+            IsActive = true;
         }
     }
 }

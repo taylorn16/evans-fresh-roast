@@ -6,7 +6,7 @@ namespace Domain.AutoFixture
     {
         public void Customize(IFixture fixture)
         {
-            fixture.Register(() => Description.From(fixture.Create<string>()));
+            fixture.Register(() => Description.Create(fixture.Create<string>()));
         }
     }
 }

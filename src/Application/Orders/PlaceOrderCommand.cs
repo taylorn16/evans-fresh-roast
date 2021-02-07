@@ -35,9 +35,8 @@ namespace Application.Orders
         {
             var contact = await _contactRepository.GetByPhoneNumber(cmd.PhoneNumber, cancellationToken);
             var activeRoastingEvent = await _coffeeRoastingEventRepository.GetActiveEvent(cancellationToken);
-            var orderDetails = GenerateOrderDetails(cmd, activeRoastingEvent);
 
-            activeRoastingEvent.PlaceOrder(contact.Id, orderDetails);
+            activeRoastingEvent.PlaceOrder(contact.Id, GenerateOrderDetails(cmd, activeRoastingEvent));
 
             var savedEvent = await _coffeeRoastingEventRepository.Save(activeRoastingEvent, cancellationToken);
 

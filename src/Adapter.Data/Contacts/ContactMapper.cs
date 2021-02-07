@@ -23,8 +23,8 @@ namespace Adapter.Data.Contacts
 
         public Domain.Contact Map(Contact dbContact) => new(
             Id<Domain.Contact>.From(dbContact.Id),
-            Name<Domain.Contact>.From(dbContact.Name),
-            UsPhoneNumber.From(dbContact.PhoneNumber),
+            Name<Domain.Contact>.Create(dbContact.Name),
+            UsPhoneNumber.Create(dbContact.PhoneNumber),
             dbContact.IsActive,
             dbContact.IsConfirmed);
     }

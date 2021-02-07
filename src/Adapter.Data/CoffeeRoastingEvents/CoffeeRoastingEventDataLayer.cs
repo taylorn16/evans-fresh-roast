@@ -107,6 +107,12 @@ namespace Adapter.Data.CoffeeRoastingEvents
                 db.Entry(newOrder.Invoice).State = EntityState.Added;
             }
 
+            foreach (var deletedOrder in existingEvent.Orders.Where(existingOrder => !@event.Orders.Select(o => o.Id).Contains(existingOrder.Id)))
+            {
+                db.Entry(deletedOrder).State = EntityState.Deleted;
+                db.Entry(deletedOrder.Invoice).State = EntityState.Deleted;
+            }
+
             db.RemoveRange(existingEvent.CoffeeRoastingEventCoffees);
             db.RemoveRange(existingEvent.Orders.SelectMany(o => o.OrderCoffees));
 

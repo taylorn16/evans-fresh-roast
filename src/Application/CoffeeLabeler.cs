@@ -23,7 +23,7 @@ namespace Application
 
             return Alphabet
                 .Take(coffees.Count)
-                .Select(ch => OrderReferenceLabel.From(ch.ToString()))
+                .Select(ch => OrderReferenceLabel.Create(ch.ToString()))
                 .Zip(coffees)
                 .ToDictionary(x => x.Item1, x => x.Item2);
         }

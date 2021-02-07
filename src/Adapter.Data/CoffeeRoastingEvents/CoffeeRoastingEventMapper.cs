@@ -37,7 +37,8 @@ namespace Adapter.Data.CoffeeRoastingEvents
             var @event = new CoffeeRoastingEvent
             {
                 Id = domainEvent.Id,
-                Date = domainEvent.Date.ToDateTimeUnspecified(),
+                Date = domainEvent.RoastDate.ToDateTimeUnspecified(),
+                OrderByDate = domainEvent.OrderByDate.ToDateTimeUnspecified(),
                 Name = domainEvent.Name,
                 IsActive = domainEvent.IsActive,
                 Contacts = contacts,
@@ -80,25 +81,26 @@ namespace Adapter.Data.CoffeeRoastingEvents
                 dbEvent.Contacts.Select(c => c.Id).Select(id => Id<Contact>.From(id)),
                 dbEvent.IsActive,
                 LocalDate.FromDateTime(dbEvent.Date),
-                Name<Domain.CoffeeRoastingEvent>.From(dbEvent.Name),
+                LocalDate.FromDateTime(dbEvent.OrderByDate),
+                Name<Domain.CoffeeRoastingEvent>.Create(dbEvent.Name),
                 dbEvent.CoffeeRoastingEventCoffees.ToDictionary(
-                    ec => OrderReferenceLabel.From(ec.Label),
+                    ec => OrderReferenceLabel.Create(ec.Label),
                     ec => new Coffee(
                         Id<Coffee>.From(ec.Coffee.Id),
-                        Name<Coffee>.From(ec.Coffee.Name),
-                        Description.From(ec.Coffee.Description),
-                        UsdPrice.From(ec.Coffee.Price),
-                        Ounces.From(ec.Coffee.OzWeight))),
+                        Name<Coffee>.Create(ec.Coffee.Name),
+                        Description.Create(ec.Coffee.Description),
+                        UsdPrice.Create(ec.Coffee.Price),
+                        Ounces.Create(ec.Coffee.OzWeight))),
                 dbEvent.Orders.Select(order => new Domain.Order(
                     Id<Domain.Order>.From(order.Id),
                     Id<Contact>.From(order.ContactId),
                     OffsetDateTime.FromDateTimeOffset(order.CreatedTimestamp),
                     order.OrderCoffees.ToDictionary(
                         oc => Id<Coffee>.From(oc.CoffeeId),
-                        oc => OrderQuantity.From(oc.Quantity)),
+                        oc => OrderQuantity.Create(oc.Quantity)),
                     new Domain.Invoice(
                         Id<Domain.Invoice>.From(order.Invoice.Id),
-                        UsdInvoiceAmount.From(order.Invoice.Amount),
+                        UsdInvoiceAmount.Create(order.Invoice.Amount),
                         order.Invoice.IsPaid,
                         order.Invoice.PaymentMethod),
                     order.IsConfirmed)));

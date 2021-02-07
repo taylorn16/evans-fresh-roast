@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
-using Dawn;
 using Domain.Base;
+using Domain.Exceptions;
 using NodaTime;
 
 namespace Domain
 {
     public sealed class CoffeeRoastingEvent : Entity<CoffeeRoastingEvent>
     {
-        public IEnumerable<Id<Contact>> NotifiedContacts { get; }
+        public IEnumerable<Id<Contact>> NotifiedContacts { get; private set; }
         public bool IsActive { get; private set; }
-        public LocalDate Date { get; }
+        public LocalDate RoastDate { get; }
+        public LocalDate OrderByDate { get; }
         public Name<CoffeeRoastingEvent> Name { get; }
         public IReadOnlyDictionary<OrderReferenceLabel, Coffee> OfferedCoffees { get; private set; }
         public IEnumerable<Order> Orders { get; private set; }
@@ -22,26 +23,38 @@ namespace Domain
             Id<CoffeeRoastingEvent> id,
             IEnumerable<Id<Contact>> notifiedContacts,
             bool isActive,
-            LocalDate date,
+            LocalDate roastDate,
+            LocalDate orderByDate,
             Name<CoffeeRoastingEvent> name,
             IDictionary<OrderReferenceLabel, Coffee> offeredCoffees,
             IEnumerable<Order> orders) : base(id)
         {
             NotifiedContacts = notifiedContacts.Distinct();
             IsActive = isActive;
-            Date = Guard.Argument(date, nameof(date))
-                .Require(dt => dt >= LocalDate.FromDateTime(DateTime.Today));
+            RoastDate = roastDate;
+            OrderByDate = orderByDate;
             Name = name;
             OfferedCoffees = new ReadOnlyDictionary<OrderReferenceLabel, Coffee>(offeredCoffees);
             Orders = orders;
 
+            if (orderByDate > roastDate)
+            {
+                throw new OrderByDateMustBeOnOrBeforeRoastDateException(orderByDate, roastDate);
+            }
+
             if (OfferedCoffees.Values.Count() != OfferedCoffees.Values.Distinct().Count())
             {
-                throw new ApplicationException("The same coffee cannot be added multiple times.");
+                var duplicates = OfferedCoffees.Values.Except(OfferedCoffees.Values.Distinct());
+                throw new CoffeesInSameRoastingEventMustBeUniqueException(duplicates.ToArray());
             }
         }
 
-        public string GetOfferingSummary()
+        public void AddNotifiedContact(Id<Contact> contact)
+        {
+            NotifiedContacts = NotifiedContacts.Concat(new[] { contact }).Distinct();
+        }
+
+        public string GetCoffeesSummary()
         {
             var lines = OfferedCoffees
                 .OrderBy(x => (string) x.Key)
@@ -55,27 +68,16 @@ namespace Domain
 
         public void Deactivate()
         {
-            if (IsActive)
-            {
-                IsActive = false;
-            }
-            else
-            {
-                throw new ApplicationException("This roasting event was already completed.");
-            }
+            if (!IsActive) throw new CoffeeRoastingEventAlreadyCompletedException();
+
+            IsActive = false;
         }
 
-        public void AddCoffeeOffering(OrderReferenceLabel label, Coffee coffee)
+        public void AddCoffee(OrderReferenceLabel label, Coffee coffee)
         {
-            if (OfferedCoffees.ContainsKey(label))
-            {
-                throw new ApplicationException($"The label {label} is already taken and can't be repeated.");
-            }
+            if (OfferedCoffees.ContainsKey(label)) throw new CoffeeLabelAlreadyUsedInRoastingEventException(label);
 
-            if (OfferedCoffees.Values.Contains(coffee))
-            {
-                throw new ApplicationException("The same coffee has already been added to this coffee roasting event.");
-            }
+            if (OfferedCoffees.Values.Contains(coffee)) throw new CoffeeAlreadyAddedToRoastingEventException(coffee);
 
             var updatedCoffees = OfferedCoffees.ToDictionary(x => x.Key, x => x.Value);
             updatedCoffees.Add(label, coffee);
@@ -87,17 +89,9 @@ namespace Domain
 
         public void PlaceOrder(Id<Contact> contact, IDictionary<Id<Coffee>, OrderQuantity> details)
         {
-            if (NotifiedContacts.All(c => c != contact))
-            {
-                throw new ApplicationException("Woops - you may not place a coffee order at this time. " +
-                                               "Please wait for the next text blast.");
-            }
+            if (NotifiedContacts.All(c => c != contact)) throw new ContactNotPartOfRoastingEventException(contact);
 
-            if (Orders.Any(o => o.Contact == contact))
-            {
-                throw new ApplicationException("Woops - you already placed an order. " +
-                                               "If you are trying to make a change, reply CANCEL to cancel your order first.");
-            }
+            if (Orders.Any(o => o.Contact == contact)) throw new ContactAlreadyPlacedOrderException(contact);
 
             var invalidCoffees = new List<Id<Coffee>>();
             var totalCost = 0m;
@@ -117,36 +111,39 @@ namespace Domain
                 totalCost += subTotal;
             }
 
-            if (invalidCoffees.Any())
-            {
-                throw new ApplicationException("You cannot place an order for a coffee that was not offered. Errant coffee ids: " +
-                                               $"{invalidCoffees.Aggregate(string.Empty, (a, b) => $"{a}, {b}")}");
-            }
+            if (invalidCoffees.Any()) throw new OrderContainedInvalidCoffeesException(invalidCoffees);
 
-            var invoice = new Invoice(
-                Id<Invoice>.New(),
-                UsdInvoiceAmount.From(totalCost),
-                false,
-                PaymentMethod.NotSet);
-            var order = new Order(
-                Id<Order>.New(),
-                contact,
-                OffsetDateTime.FromDateTimeOffset(DateTimeOffset.Now),
-                details.ToDictionary(x => x.Key, x => x.Value),
-                invoice,
-                false);
+            var order = CreateOrder(contact, details, totalCost);
 
             Orders = Orders.Concat(new [] { order });
+        }
+
+        private static Order CreateOrder(Id<Contact> contact, IDictionary<Id<Coffee>, OrderQuantity> details, decimal totalCost) => new(
+            Id<Order>.New(),
+            contact,
+            OffsetDateTime.FromDateTimeOffset(DateTimeOffset.Now),
+            details.ToDictionary(x => x.Key, x => x.Value),
+            new Invoice(
+                Id<Invoice>.New(),
+                UsdInvoiceAmount.Create(totalCost),
+                false,
+                PaymentMethod.NotSet),
+            false);
+
+        public void CancelOrder(Id<Contact> contact)
+        {
+            var orderForContact = Orders.FirstOrDefault(o => o.Contact == contact);
+
+            if (orderForContact == null) throw new OrderCancelledBeforeItWasPlacedException(contact);
+
+            Orders = Orders.Where(o => o.Contact != contact);
         }
 
         public void ConfirmOrder(Id<Contact> contact)
         {
             var order = Orders.FirstOrDefault(o => o.Contact == contact);
 
-            if (order == null)
-            {
-                throw new ApplicationException("Woops - looks like you haven't placed an order yet. You can place one now, though!");
-            }
+            if (order == null) throw new OrderConfirmedBeforeItWasPlacedException(contact);
 
             order.Confirm();
         }

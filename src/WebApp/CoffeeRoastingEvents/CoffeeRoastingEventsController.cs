@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.CoffeeRoastingEvents;
+using Application.CoffeeRoastingEvents.CreateCoffeeRoastingEvent;
+using Application.CoffeeRoastingEvents.SendTextBlast;
 using Domain;
 using Domain.Base;
 using MediatR;
@@ -36,8 +38,8 @@ namespace WebApp.CoffeeRoastingEvents
         {
             var cmd = new CreateCoffeeRoastingEventCommand
             {
-                Name = Name<CoffeeRoastingEvent>.From(request.Name ?? ""),
-                Date = request.Date ?? default,
+                Name = Name<CoffeeRoastingEvent>.Create(request.Name ?? ""),
+                RoastDate = request.Date ?? default,
                 Coffees = request.CoffeeIds?.Select(id => Id<Coffee>.From(id)).ToArray() ?? Array.Empty<Id<Coffee>>(),
                 Contacts = request.ContactIds?.Select(id => Id<Contact>.From(id)).ToArray() ?? Array.Empty<Id<Contact>>(),
             };

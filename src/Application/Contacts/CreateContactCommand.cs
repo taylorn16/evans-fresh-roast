@@ -30,7 +30,7 @@ namespace Application.Contacts
                 Id<Contact>.New(),
                 cmd.Name,
                 cmd.PhoneNumber,
-                false,
+                true,
                 false);
 
             var savedContact = await _contactRepository.Save(newContact, cancellationToken);

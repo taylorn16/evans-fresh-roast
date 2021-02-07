@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Domain.Base;
+using Domain.Exceptions;
 using NodaTime;
 
 namespace Domain
@@ -31,14 +31,9 @@ namespace Domain
 
         public void Confirm()
         {
-            if (!IsConfirmed)
-            {
-                IsConfirmed = true;
-            }
-            else
-            {
-                throw new ApplicationException("This order was already confirmed.");
-            }
+            if (IsConfirmed) throw new OrderAlreadyConfirmedException();
+
+            IsConfirmed = true;
         }
 
         public void MarkAsPaid(PaymentMethod method)

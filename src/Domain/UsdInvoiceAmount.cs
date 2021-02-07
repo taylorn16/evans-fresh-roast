@@ -1,4 +1,6 @@
 ﻿using Dawn;
+using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
@@ -6,7 +8,9 @@ namespace Domain
     {
         private readonly decimal _amount;
 
-        public static UsdInvoiceAmount From(decimal amount) => new(amount);
+        public static UsdInvoiceAmount Create(decimal amount) => ValueObject.SafeCreate(
+            () => new UsdInvoiceAmount(amount),
+            ex => new InvalidInvoiceAmountException(amount, ex));
 
         private UsdInvoiceAmount(decimal amount)
         {

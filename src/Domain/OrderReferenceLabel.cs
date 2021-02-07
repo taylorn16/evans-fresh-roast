@@ -1,5 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Dawn;
+using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
@@ -9,7 +11,9 @@ namespace Domain
 
         private readonly NonEmptyString _label;
 
-        public static OrderReferenceLabel From(string label) => new(label);
+        public static OrderReferenceLabel Create(string label) => ValueObject.SafeCreate(
+            () => new OrderReferenceLabel(label),
+            ex => new InvalidOrderReferenceLabelException(label, ex));
 
         private OrderReferenceLabel(string label)
         {

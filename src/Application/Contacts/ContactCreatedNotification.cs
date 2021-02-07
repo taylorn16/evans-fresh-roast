@@ -25,7 +25,7 @@ namespace Application.Contacts
             var newContactMessage = $"Hey there {noty.Contact.Name}! You've been selected to receive coffee notifications" +
                                     " for Evan's Fresh Roast. Nice!\n\nIf that sounds good to you, please reply I'M IN.";
 
-            await _outboundSms.Send(noty.Contact.PhoneNumber, SmsMessage.From(newContactMessage));
+            await _outboundSms.Send(noty.Contact.PhoneNumber, SmsMessage.Create(newContactMessage));
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using System.Text.RegularExpressions;
 using Dawn;
+using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
@@ -8,7 +10,9 @@ namespace Domain
     {
         private readonly NonEmptyString _phoneNumber;
 
-        public static UsPhoneNumber From(string phoneNumber) => new(phoneNumber);
+        public static UsPhoneNumber Create(string phoneNumber) => ValueObject.SafeCreate(
+            () => new UsPhoneNumber(phoneNumber),
+            ex => new InvalidPhoneNumberException(phoneNumber, ex));
 
         private UsPhoneNumber(string phoneNumber)
         {

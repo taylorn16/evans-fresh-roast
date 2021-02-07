@@ -7,7 +7,7 @@ using Application.Repositories;
 using Domain;
 using MediatR;
 
-namespace Application.CoffeeRoastingEvents
+namespace Application.CoffeeRoastingEvents.CompleteCoffeeRoastingEvent
 {
     public sealed record CoffeeRoastingEventCompletedNotification : INotification
     {
@@ -51,16 +51,16 @@ namespace Application.CoffeeRoastingEvents
 
         private static SmsMessage BuildReadyForPickupMessage(Order order)
         {
-            var sb = new StringBuilder();
+            var msg = new StringBuilder();
 
-            sb.AppendLine("Evan's fresh roast notice - your coffee is ready for pickup!");
+            msg.Append("Evan's fresh roast notice - your coffee is ready for pickup! ");
 
             if (!order.Invoice.IsPaid)
             {
-                sb.AppendLine($"If you haven't paid yet, make sure to Venmo Evan {order.Invoice.Amount}.");
+                msg.Append($"If you haven't paid yet, make sure to get Evan {order.Invoice.Amount} ASAP.");
             }
 
-            return SmsMessage.From(sb.ToString());
+            return SmsMessage.Create(msg.ToString());
         }
     }
 }

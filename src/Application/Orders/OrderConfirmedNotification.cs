@@ -22,7 +22,7 @@ namespace Application.Orders
 
         public async Task Handle(OrderConfirmedNotification noty, CancellationToken _)
         {
-            var message = SmsMessage.From("Thank you. Your order is confirmed.");
+            var message = SmsMessage.Create("Thank you. Your order is confirmed.");
             await _outboundSms.Send(noty.PhoneNumber, message);
         }
     }

@@ -9,7 +9,7 @@ namespace Domain.AutoFixture
 
         public void Customize(IFixture fixture)
         {
-            fixture.Register(() => UsdPrice.From(_faker.Random.Decimal(1, 200)));
+            fixture.Register(() => UsdPrice.Create(_faker.Random.Decimal(1, 20)));
         }
     }
 }

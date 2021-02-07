@@ -24,7 +24,7 @@ namespace Application.Contacts
         {
             const string message = "Right on! You're in. Thank you, and be on the look out for the next text blast.";
 
-            await _outboundSms.Send(noty.Contact.PhoneNumber, SmsMessage.From(message));
+            await _outboundSms.Send(noty.Contact.PhoneNumber, SmsMessage.Create(message));
         }
     }
 }

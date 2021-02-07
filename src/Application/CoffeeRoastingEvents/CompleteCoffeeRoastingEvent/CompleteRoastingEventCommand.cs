@@ -3,16 +3,17 @@ using System.Threading.Tasks;
 using Application.Repositories;
 using Domain;
 using Domain.Base;
+using LanguageExt.Common;
 using MediatR;
 
-namespace Application.CoffeeRoastingEvents
+namespace Application.CoffeeRoastingEvents.CompleteCoffeeRoastingEvent
 {
-    public sealed record CompleteRoastingEventCommand : IRequest
+    public sealed record CompleteRoastingEventCommand : IRequest<Result<Unit>>
     {
         public Id<CoffeeRoastingEvent> Event { get; init; }
     }
 
-    internal sealed class CompleteRoastingEventCommandHandler : AsyncRequestHandler<CompleteRoastingEventCommand>
+    internal sealed class CompleteRoastingEventCommandHandler : IRequestHandler<CompleteRoastingEventCommand, Result<Unit>>
     {
         private readonly ICoffeeRoastingEventRepository _coffeeRoastingEventRepository;
         private readonly IMediator _mediator;
@@ -25,7 +26,7 @@ namespace Application.CoffeeRoastingEvents
             _mediator = mediator;
         }
 
-        protected override async Task Handle(CompleteRoastingEventCommand cmd, CancellationToken cancellationToken)
+        public async Task<Result<Unit>> Handle(CompleteRoastingEventCommand cmd, CancellationToken cancellationToken)
         {
             var @event = await _coffeeRoastingEventRepository.Get(cmd.Event, cancellationToken);
 
@@ -33,7 +34,9 @@ namespace Application.CoffeeRoastingEvents
 
             var savedEvent = await _coffeeRoastingEventRepository.Save(@event, cancellationToken);
 
-            await _mediator.Publish(new CoffeeRoastingEventCompletedNotification { Event = savedEvent }, cancellationToken);
+            _mediator.Publish(new CoffeeRoastingEventCompletedNotification { Event = savedEvent });
+
+            return Unit.Value;
         }
     }
 }

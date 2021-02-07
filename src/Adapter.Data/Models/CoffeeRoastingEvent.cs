@@ -14,6 +14,9 @@ namespace Adapter.Data.Models
         [Required]
         public DateTime Date { get; set; }
 
+        [Required]
+        public DateTime OrderByDate { get; set; }
+
         public bool IsActive { get; set; }
 
         public ICollection<Contact> Contacts { get; set; }

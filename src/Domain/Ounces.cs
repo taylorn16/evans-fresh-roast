@@ -1,4 +1,6 @@
 ﻿using Dawn;
+using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
@@ -6,7 +8,9 @@ namespace Domain
     {
         private readonly decimal _oz;
 
-        public static Ounces From(decimal oz) => new(oz);
+        public static Ounces Create(decimal oz) => ValueObject.SafeCreate(
+            () => new Ounces(oz),
+            ex => new InvalidOuncesException(oz, ex));
 
         private Ounces(decimal oz)
         {

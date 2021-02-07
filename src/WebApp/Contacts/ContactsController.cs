@@ -25,8 +25,8 @@ namespace WebApp.Contacts
         {
             var command = new CreateContactCommand
             {
-                Name = Name<Contact>.From(contact.Name ?? ""),
-                PhoneNumber = UsPhoneNumber.From(contact.PhoneNumber ?? ""),
+                Name = Name<Contact>.Create(contact.Name ?? ""),
+                PhoneNumber = UsPhoneNumber.Create(contact.PhoneNumber ?? ""),
             };
 
             var createdContact = await _mediator.Send(command, cancellationToken);

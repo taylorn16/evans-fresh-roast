@@ -23,9 +23,9 @@ namespace Adapter.Data.Coffees
 
         public Domain.Coffee Map(Coffee dbCoffee) => new(
             Id<Domain.Coffee>.From(dbCoffee.Id),
-            Name<Domain.Coffee>.From(dbCoffee.Name),
-            Description.From(dbCoffee.Description),
-            UsdPrice.From(dbCoffee.Price),
-            Ounces.From(dbCoffee.OzWeight));
+            Name<Domain.Coffee>.Create(dbCoffee.Name),
+            Description.Create(dbCoffee.Description),
+            UsdPrice.Create(dbCoffee.Price),
+            Ounces.Create(dbCoffee.OzWeight));
     }
 }

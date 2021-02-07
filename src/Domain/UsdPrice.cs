@@ -1,4 +1,6 @@
 ﻿using Dawn;
+using Domain.Base;
+using Domain.Exceptions;
 
 namespace Domain
 {
@@ -6,7 +8,9 @@ namespace Domain
     {
         private readonly decimal _price;
 
-        public static UsdPrice From(decimal price) => new(price);
+        public static UsdPrice Create(decimal price) => ValueObject.SafeCreate(
+            () => new UsdPrice(price),
+            ex => new InvalidPriceException(price, ex));
 
         private UsdPrice(decimal price)
         {
