@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using Application.Behaviors;
 using Application.Orders;
+using Application.Sms;
 using Domain.Exceptions;
 using MediatR.Pipeline;
 
@@ -16,15 +17,18 @@ namespace Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
+            // MediatR pipeline
             services.AddMediatR(Assembly.GetExecutingAssembly());
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CommandValidatorBehavior<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestExceptionProcessorBehavior<,>));
             AddCommandValidators(services);
-
-            services.AddTransient<ILabelCoffees, CoffeeLabeler>();
             services.AddTransient<
                 IRequestExceptionHandler<PlaceOrderCommand, Unit, DomainBehaviorException>,
                 PlaceOrderDomainBehaviorExceptionHandler>();
+
+            // Auxiliary classes
+            services.AddTransient<ILabelCoffees, CoffeeLabeler>();
+            services.AddTransient<ISmsParser, SmsParser>();
 
             return services;
         }

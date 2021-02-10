@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Linq;
+using Application.CoffeeRoastingEvents.CreateCoffeeRoastingEvent;
 using Domain;
+using Domain.Base;
+using NodaTime;
+using Coffee = Domain.Coffee;
+using CoffeeRoastingEvent = Domain.CoffeeRoastingEvent;
+using Contact = Domain.Contact;
 
 namespace WebApp.CoffeeRoastingEvents
 {
     public interface ICoffeeRoastingEventMapper
     {
         Dto.CoffeeRoastingEvent Map(CoffeeRoastingEvent @event);
+        CreateCoffeeRoastingEventCommand Map(Dto.CoffeeRoastingEventPostRequest request);
     }
 
     public sealed class CoffeeRoastingEventMapper : ICoffeeRoastingEventMapper
@@ -49,6 +56,15 @@ namespace WebApp.CoffeeRoastingEvents
                     Quantity = x.Value,
                 }).ToArray(),
             }).ToArray(),
+        };
+
+        public CreateCoffeeRoastingEventCommand Map(Dto.CoffeeRoastingEventPostRequest request) => new()
+        {
+            Name = Name<CoffeeRoastingEvent>.Create(request.Name!),
+            RoastDate = request.RoastDate!.Value,
+            OrderByDate = request.OrderByDate ?? request.RoastDate.Value.Minus(Period.FromDays(1)),
+            Coffees = request.CoffeeIds?.Select(id => Id<Coffee>.From(id)).ToArray() ?? Array.Empty<Id<Coffee>>(),
+            Contacts = request.ContactIds?.Select(id => Id<Contact>.From(id)).ToArray() ?? Array.Empty<Id<Contact>>(),
         };
     }
 }

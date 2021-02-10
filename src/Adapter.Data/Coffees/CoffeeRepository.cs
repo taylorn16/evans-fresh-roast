@@ -49,5 +49,12 @@ namespace Adapter.Data.Coffees
 
             return dbCoffees.Select(_mapper.Map);
         }
+
+        public async Task<IEnumerable<Coffee>> GetAll(CancellationToken cancellationToken)
+        {
+            var dbCoffees = await _dataLayer.GetAllCoffees(cancellationToken);
+
+            return dbCoffees.Select(_mapper.Map);
+        }
     }
 }

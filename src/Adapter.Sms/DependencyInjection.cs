@@ -9,7 +9,7 @@ namespace Adapter.Sms
         public static IServiceCollection AddSmsAdapter(this IServiceCollection services)
         {
             services.AddSingleton<IVonageCredentialsProvider, VonageCredentialsProvider>();
-            services.AddScoped(svc => new VonageClient(svc.GetService<IVonageCredentialsProvider>().Get()).SmsClient);
+            services.AddTransient(svc => new VonageClient(svc.GetService<IVonageCredentialsProvider>().Get()).SmsClient);
             services.AddTransient<ISendSms, SmsSender>(); // port impl
 
             return services;

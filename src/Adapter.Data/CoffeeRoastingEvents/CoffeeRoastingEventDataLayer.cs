@@ -18,23 +18,23 @@ namespace Adapter.Data.CoffeeRoastingEvents
 
     internal sealed class CoffeeRoastingEventDataLayer : ICoffeeRoastingEventDataLayer
     {
-        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+        private readonly IDbContextFactory _dbContextFactory;
 
-        public CoffeeRoastingEventDataLayer(IDbContextFactory<ApplicationDbContext> dbContextFactory)
+        public CoffeeRoastingEventDataLayer(IDbContextFactory dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
         }
 
         public async Task<Guid> GetActiveEventId(CancellationToken cancellationToken)
         {
-            await using var db = _dbContextFactory.CreateDbContext();
+            await using var db = _dbContextFactory.Create();
 
             return (await db.CoffeeRoastingEvents.SingleAsync(ev => ev.IsActive, cancellationToken)).Id;
         }
 
         public async Task<bool> DoesCoffeeRoastingEventExist(Guid coffeeRoastingEventId, CancellationToken cancellationToken)
         {
-            await using var db = _dbContextFactory.CreateDbContext();
+            await using var db = _dbContextFactory.Create();
 
             var existingEvent = await db.CoffeeRoastingEvents.SingleOrDefaultAsync(ev => ev.Id == coffeeRoastingEventId, cancellationToken);
 
@@ -43,7 +43,7 @@ namespace Adapter.Data.CoffeeRoastingEvents
 
         public async Task<CoffeeRoastingEvent> GetCoffeeRoastingEvent(Guid coffeeRoastingEventId, CancellationToken cancellationToken)
         {
-            await using var db = _dbContextFactory.CreateDbContext();
+            await using var db = _dbContextFactory.Create();
 
             return await db.CoffeeRoastingEvents
                 .Where(ev => ev.Id == coffeeRoastingEventId)
@@ -60,7 +60,7 @@ namespace Adapter.Data.CoffeeRoastingEvents
 
         public async Task CreateCoffeeRoastingEvent(CoffeeRoastingEvent @event, CancellationToken cancellationToken)
         {
-            await using var db = _dbContextFactory.CreateDbContext();
+            await using var db = _dbContextFactory.Create();
 
             await db.CoffeeRoastingEvents.AddAsync(@event, cancellationToken);
 
@@ -74,7 +74,7 @@ namespace Adapter.Data.CoffeeRoastingEvents
 
         public async Task UpdateCoffeeRoastingEvent(CoffeeRoastingEvent @event, CancellationToken cancellationToken)
         {
-            await using var db = _dbContextFactory.CreateDbContext();
+            await using var db = _dbContextFactory.Create();
 
             db.CoffeeRoastingEvents.Update(@event);
 

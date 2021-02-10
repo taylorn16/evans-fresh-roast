@@ -65,5 +65,12 @@ namespace Adapter.Data.Contacts
 
             return domainContact;
         }
+
+        public async Task<IEnumerable<Contact>> GetAll(CancellationToken cancellationToken)
+        {
+            var dbContacts = await _dataLayer.GetAllContacts(cancellationToken);
+
+            return dbContacts.Select(_mapper.Map);
+        }
     }
 }

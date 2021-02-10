@@ -5,8 +5,8 @@ namespace Domain
 {
     public sealed class Contact : Entity<Contact>
     {
-        public Name<Contact> Name { get; set; }
-        public UsPhoneNumber PhoneNumber { get; set; }
+        public Name<Contact> Name { get; private set; }
+        public UsPhoneNumber PhoneNumber { get; }
         public bool IsActive { get; private set; }
         public bool IsConfirmed { get; private set; }
 
@@ -21,6 +21,11 @@ namespace Domain
             PhoneNumber = phoneNumber;
             IsActive = isActive;
             IsConfirmed = isConfirmed;
+        }
+
+        public void SetName(Name<Contact> name)
+        {
+            Name = name;
         }
 
         public void Confirm()

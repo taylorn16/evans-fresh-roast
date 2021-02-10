@@ -10,6 +10,7 @@ namespace Adapter.Data.Coffees
 {
     internal interface ICoffeeDataLayer
     {
+        Task<List<Coffee>> GetAllCoffees(CancellationToken cancellationToken);
         Task<List<Coffee>> GetCoffees(IEnumerable<Guid> ids, CancellationToken cancellationToken);
         Task CreateCoffee(Coffee coffee, CancellationToken cancellationToken);
         Task UpdateCoffee(Coffee coffee, CancellationToken cancellationToken);
@@ -17,23 +18,30 @@ namespace Adapter.Data.Coffees
 
     internal sealed class CoffeeDataLayer : ICoffeeDataLayer
     {
-        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+        private readonly IDbContextFactory _dbContextFactory;
 
-        public CoffeeDataLayer(IDbContextFactory<ApplicationDbContext> dbContextFactory)
+        public CoffeeDataLayer(IDbContextFactory dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
         }
 
         public async Task<List<Coffee>> GetCoffees(IEnumerable<Guid> ids, CancellationToken cancellationToken)
         {
-            await using var db = _dbContextFactory.CreateDbContext();
+            await using var db = _dbContextFactory.Create();
 
             return await db.Coffees.Where(c => ids.Contains(c.Id)).ToListAsync(cancellationToken);
         }
 
+        public async Task<List<Coffee>> GetAllCoffees(CancellationToken cancellationToken)
+        {
+            await using var db = _dbContextFactory.Create();
+
+            return await db.Coffees.ToListAsync(cancellationToken);
+        }
+
         public async Task CreateCoffee(Coffee coffee, CancellationToken cancellationToken)
         {
-            await using var db = _dbContextFactory.CreateDbContext();
+            await using var db = _dbContextFactory.Create();
 
             await db.Coffees.AddAsync(coffee, cancellationToken);
 
@@ -42,7 +50,7 @@ namespace Adapter.Data.Coffees
 
         public async Task UpdateCoffee(Coffee coffee, CancellationToken cancellationToken)
         {
-            await using var db = _dbContextFactory.CreateDbContext();
+            await using var db = _dbContextFactory.Create();
 
             db.Coffees.Update(coffee);
 

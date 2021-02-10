@@ -7,14 +7,20 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentValidation.AspNetCore" Version="9.5.0" />
         <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.2" />
         <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.0.0" />
+        <PackageReference Include="NSwag.AspNetCore" Version="13.10.2" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Adapter.Data\Adapter.Data.csproj" />
       <ProjectReference Include="..\Adapter.Sms\Adapter.Sms.csproj" />
       <ProjectReference Include="..\Application\Application.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="wwwroot\favicon.ico" />
     </ItemGroup>
 
 </Project>

@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Adapter.Data;
@@ -8,10 +9,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Application;
+using FluentValidation.AspNetCore;
 using Infrastructure;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
-using WebApp.CoffeeRoastingEvents;
 
 namespace WebApp
 {
@@ -29,19 +30,22 @@ namespace WebApp
         {
             services.AddControllers();
 
-            services.AddMvc().AddJsonOptions(opts =>
-            {
-                opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
-                opts.JsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-            });
-
-            services.AddTransient<ICoffeeRoastingEventMapper, CoffeeRoastingEventMapper>();
+            services.AddMvc()
+                .AddJsonOptions(opts =>
+                {
+                    opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+                    opts.JsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+                })
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssembly(Assembly.GetExecutingAssembly()));
 
             services
                 .AddApplication()
                 .AddDataAdapter()
                 .AddSmsAdapter()
-                .AddInfrastructure();
+                .AddInfrastructure()
+                .AddWebApi();
+
+            services.AddSwaggerDocument();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -61,6 +65,9 @@ namespace WebApp
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseOpenApi();
+            app.UseSwaggerUi3();
 
             app.UseEndpoints(endpoints =>
             {

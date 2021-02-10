@@ -5,7 +5,7 @@ using Invoice = Adapter.Data.Models.Invoice;
 
 namespace Adapter.Data
 {
-    internal sealed class ApplicationDbContext : DbContext
+    internal class ApplicationDbContext : DbContext
     {
         public DbSet<Adapter.Data.Models.CoffeeRoastingEvent> CoffeeRoastingEvents { get; set; }
         public DbSet<Adapter.Data.Models.Contact> Contacts { get; set; }

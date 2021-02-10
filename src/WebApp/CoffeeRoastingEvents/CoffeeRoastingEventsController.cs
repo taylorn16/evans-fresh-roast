@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.CoffeeRoastingEvents;
-using Application.CoffeeRoastingEvents.CreateCoffeeRoastingEvent;
 using Application.CoffeeRoastingEvents.SendTextBlast;
-using Domain;
 using Domain.Base;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Dto;
-using Coffee = Domain.Coffee;
 using CoffeeRoastingEvent = Domain.CoffeeRoastingEvent;
-using Contact = Domain.Contact;
 
 namespace WebApp.CoffeeRoastingEvents
 {
@@ -32,20 +27,21 @@ namespace WebApp.CoffeeRoastingEvents
         }
 
         [HttpPost]
-        public async Task<Dto.CoffeeRoastingEvent> CreateCoffeeRoastingEvent(
-            [FromBody] CoffeeRoastingEventPostRequest request,
-            CancellationToken cancellationToken)
+        public async Task<ActionResult<Dto.CoffeeRoastingEvent>> CreateCoffeeRoastingEvent(
+            [FromBody] Dto.CoffeeRoastingEventPostRequest request, CancellationToken cancellationToken)
         {
-            var cmd = new CreateCoffeeRoastingEventCommand
-            {
-                Name = Name<CoffeeRoastingEvent>.Create(request.Name ?? ""),
-                RoastDate = request.Date ?? default,
-                Coffees = request.CoffeeIds?.Select(id => Id<Coffee>.From(id)).ToArray() ?? Array.Empty<Id<Coffee>>(),
-                Contacts = request.ContactIds?.Select(id => Id<Contact>.From(id)).ToArray() ?? Array.Empty<Id<Contact>>(),
-            };
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var cmd = _mapper.Map(request);
             var domainEvent = await _mediator.Send(cmd, cancellationToken);
 
             return _mapper.Map(domainEvent);
+        }
+
+        [HttpGet]
+        public Task<IReadOnlyCollection<Dto.CoffeeRoastingEvent>> GetCoffeeRoastingEvents([FromQuery] int? page, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
 
         [HttpGet("{id}")]
@@ -62,6 +58,55 @@ namespace WebApp.CoffeeRoastingEvents
         {
             var cmd = new SendTextBlastCommand { Event = Id<CoffeeRoastingEvent>.From(id) };
             await _mediator.Send(cmd, cancellationToken);
+        }
+
+        [HttpPost("{id}/reminder-text-blast")]
+        public async Task SendReminderTextBlast(Guid id, CancellationToken cancellationToken)
+        {
+            var cmd = new SendFollowUpTextBlastCommand { Event = Id<CoffeeRoastingEvent>.From(id) };
+            await _mediator.Send(cmd, cancellationToken);
+        }
+
+        [HttpPut("{id}")]
+        public Task<Dto.CoffeeRoastingEvent> UpdateCoffeeRoastingEvent(
+            [FromBody] Dto.CoffeeRoastingEventPutRequest request, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpPut("{id}/coffees")]
+        public Task AddCoffeesToEvent(
+            Guid id, [FromBody] Dto.CoffeeRoastingEventCoffeesPutRequest request, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpDelete("{id}/coffees")]
+        public Task RemoveCoffeesFromEvent(
+            Guid id, [FromBody] Dto.CoffeeRoastingEventCoffeesDeleteRequest request, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpPut("{id}/contacts")]
+        public Task AddContactsToEvent(
+            Guid id, [FromBody] Dto.CoffeeRoastingEventContactsPutRequest request, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpDelete("{id}/contacts")]
+        public Task RemoveContactsFromEvent(
+            Guid id, [FromBody] Dto.CoffeeRoastingEventContactsDeleteRequest request, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpPut("{eventId}/orders/{orderId}/invoices/{invoiceId}")]
+        public Task UpdateInvoice(
+            Guid eventId, Guid orderId, Guid invoiceId, [FromBody] Dto.InvoicePutRequest request, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

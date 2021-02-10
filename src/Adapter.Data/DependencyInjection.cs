@@ -1,9 +1,11 @@
-﻿using Adapter.Data.CoffeeRoastingEvents;
+﻿using System.Runtime.CompilerServices;
+using Adapter.Data.CoffeeRoastingEvents;
 using Adapter.Data.Coffees;
 using Adapter.Data.Contacts;
 using Application.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+[assembly: InternalsVisibleTo("WebApp.RegressionTests")]
 
 namespace Adapter.Data
 {
@@ -11,7 +13,7 @@ namespace Adapter.Data
     {
         public static IServiceCollection AddDataAdapter(this IServiceCollection services)
         {
-            services.AddDbContextFactory<ApplicationDbContext>(opts => opts.UseSqlServer(""));
+            services.AddTransient<IDbContextFactory, DbContextFactory>();
 
             services.AddTransient<ICoffeeRoastingEventDataLayer, CoffeeRoastingEventDataLayer>();
             services.AddTransient<ICoffeeRoastingEventMapper, CoffeeRoastingEventMapper>();

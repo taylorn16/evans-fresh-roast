@@ -21,5 +21,16 @@ namespace Domain
             Price = price;
             NetWeightPerBag = netWeightPerBag;
         }
+
+        public Coffee With(
+            Name<Coffee>? name = null,
+            Description? description = null,
+            UsdPrice? price = null,
+            Ounces? netWeightPerBag = null) => new(
+            Id,
+            name ?? Name,
+            description ?? Description,
+            price ?? Price,
+            netWeightPerBag ?? NetWeightPerBag);
     }
 }

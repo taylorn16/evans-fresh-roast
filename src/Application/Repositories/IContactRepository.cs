@@ -12,5 +12,6 @@ namespace Application.Repositories
         Task<Contact> Get(Id<Contact> id, CancellationToken cancellationToken);
         Task<IEnumerable<Contact>> Get(IEnumerable<Id<Contact>> ids, CancellationToken cancellationToken);
         Task<Contact> GetByPhoneNumber(UsPhoneNumber phoneNumber, CancellationToken cancellationToken);
+        Task<IEnumerable<Contact>> GetAll(CancellationToken cancellationToken);
     }
 }
